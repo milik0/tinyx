@@ -23,15 +23,17 @@ public class PostAggregateSubscriber implements Consumer<PostAggregate> {
   private final PubSubCommands.RedisSubscriber subscriber;
   @Inject HomeTimelineService homeTimelineService;
 
-  public PostAggregateSubscriber(final RedisDataSource ds) {
+  public PostAggregateSubscriber(
+      final RedisDataSource ds, HomeTimelineService homeTimelineService) {
     subscriber = ds.pubsub(PostAggregate.class).subscribe("post_aggregate", this);
+    this.homeTimelineService = homeTimelineService;
   }
 
   @Override
   public void accept(final PostAggregate message) {
     vertx.executeBlocking(
         future -> {
-          homeTimelineService.handlePostAggregate(message);
+          this.homeTimelineService.handlePostAggregate(message);
           future.complete();
         });
   }
